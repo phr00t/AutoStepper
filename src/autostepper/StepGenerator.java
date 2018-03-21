@@ -174,17 +174,17 @@ public class StepGenerator {
         return FFTAmounts.getQuick(index);
     }
     
-    private static boolean sustainedFFT(float startTime, float len, float granularity, float timePerFFT, TFloatArrayList FFTMaxes, TFloatArrayList FFTAvg, float aboveAvg, float dampenAverage) {
-        int endIndex = Math.round((startTime + len) / timePerFFT);
+    private static boolean sustainedFFT(float startTime, float len, float granularity, float timePerFFT, TFloatArrayList FFTMaxes, TFloatArrayList FFTAvg, float aboveAvg, float averageMultiplier) {
+        int endIndex = (int)Math.floor((startTime + len) / timePerFFT);
         if( endIndex >= FFTMaxes.size() ) return false;
         int wiggleRoom = Math.round(0.1f * len / timePerFFT);
-        int startIndex = Math.round(startTime / timePerFFT);
-        int pastGranu = Math.round((startTime + granularity) / timePerFFT);
+        int startIndex = (int)Math.floor(startTime / timePerFFT);
+        int pastGranu = (int)Math.floor((startTime + granularity) / timePerFFT);
         boolean startThresholdReached = false;
         for(int i=startIndex;i<=endIndex;i++) {
             float amt = FFTMaxes.getQuick(i);
-            float avg = FFTAvg.getQuick(i) * dampenAverage;
-            if( i < pastGranu ) {
+            float avg = FFTAvg.getQuick(i) * averageMultiplier;
+            if( i <= pastGranu ) {
                 startThresholdReached |= amt >= avg + aboveAvg;
             } else {
                 if( startThresholdReached == false ) return false;
@@ -223,18 +223,18 @@ public class StepGenerator {
             if( t > 0f ) {
                 float fftavg = getFFT(t, FFTAverages, timePerFFT);
                 float fftmax = getFFT(t, FFTMaxes, timePerFFT);
-                boolean sustained = sustainedFFT(t, 0.666f, timeGranularity, timePerFFT, FFTMaxes, FFTAverages, 0.2f, 0.6f);
+                boolean sustained = sustainedFFT(t, 0.75f, timeGranularity, timePerFFT, FFTMaxes, FFTAverages, 0.25f, 0.5f);
                 boolean nearKick = isNearATime(t, fewTimes[AutoStepper.KICKS], timePerBeat / stepGranularity);
                 boolean nearSnare = isNearATime(t, fewTimes[AutoStepper.SNARE], timePerBeat / stepGranularity);
                 boolean nearEnergy = isNearATime(t, fewTimes[AutoStepper.ENERGY], timePerBeat / stepGranularity);
                 steps = sustained || nearKick || nearSnare || nearEnergy ? 1 : 0;
                 if( sustained ) {
                     holds = 1 + (nearEnergy ? 1 : 0);
-                } else if( fftmax < 0.4f ) {
-                    holds = fftmax < 0.2f ? -2 : -1;
+                } else if( fftmax < 0.5f ) {
+                    holds = fftmax < 0.25f ? -2 : -1;
                 }
-                if( nearKick && nearSnare &&
-                    steps > 0 && lastLine.contains("1") == false && lastLine.contains("2") == false ) {
+                if( nearKick && (nearSnare || nearEnergy) && timeIndex % 2 == 0 &&
+                    steps > 0 && lastLine.contains("1") == false && lastLine.contains("2") == false && lastLine.contains("3") == false ) {
                      // only jump in high areas, on solid beats (not half beats)
                     steps = 2;
                 }
