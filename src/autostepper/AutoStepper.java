@@ -1,7 +1,3 @@
-/*
-  - implement https://getsongbpm.com/api
-  
- */
 package autostepper;
 
 import ddf.minim.AudioPlayer;
@@ -34,10 +30,12 @@ public class AutoStepper {
     private final TFloatArrayList[] manyTimes = new TFloatArrayList[4];
     private final TFloatArrayList[] fewTimes = new TFloatArrayList[4];
     
+    // for minim
     public String sketchPath( String fileName ) {
         return fileName;
     }
     
+    // for minim
     public InputStream createInput( String fileName ) {
         try {
             return new FileInputStream(new File(fileName));
@@ -46,6 +44,7 @@ public class AutoStepper {
         }
     }
     
+    // argument parser
     public static String getArg(String[] args, String argname, String def) {
         try {
             for(String s : args) {
@@ -58,6 +57,7 @@ public class AutoStepper {
         return def;
     }
     
+    // argument parser
     public static boolean hasArg(String[] args, String argname) {
         for(String s : args) {
             if( s.toLowerCase().equals(argname) ) return true;
@@ -250,8 +250,6 @@ public class AutoStepper {
         return BPM;
     }
     
-    // wayhome: 0.432s, 0.879s, 1.332s, 1.787s, 2.24s, 2.7s..  = 132.74 BPM
-    // angel: 4.856s, 5.28s... = 139.6 BPM
     void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir) {
       int fftSize = 512;
       
@@ -261,7 +259,7 @@ public class AutoStepper {
       // tell it to "play" so we can read from it.
       stream.play();
 
-      // create the fft we'll use for analysis
+      // create the fft/beatdetect objects we'll use for analysis
       BeatDetect manybd = new BeatDetect(BeatDetect.FREQ_ENERGY, fftSize, stream.getFormat().getSampleRate());
       BeatDetect fewbd = new BeatDetect(BeatDetect.FREQ_ENERGY, fftSize, stream.getFormat().getSampleRate());
       BeatDetect manybde = new BeatDetect(BeatDetect.SOUND_ENERGY, fftSize, stream.getFormat().getSampleRate());
@@ -368,12 +366,6 @@ public class AutoStepper {
         startTime = -getMostCommon(startTimes, 0.02f, false);            
       }
       System.out.println("Time per beat: " + timePerBeat + ", BPM: " + BPM);
-      
-      // angel = -0.2955827 works perfectly (bpm 140)
-      // bassjam = -0.1231 works perfectly... (bpm 130)
-      // cash cash now works with kickStartTime weight, -0.1656 (bpm 114)
-      // lasttime = -0.0592 works perfectly... (bpm 125)
-      // wayhome = -0.4279 works perfectly... (bpm 132)
       System.out.println("Start Time (without " + STARTSYNC + "s offset yet): " + startTime);
       
       // start making the SM

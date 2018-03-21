@@ -104,7 +104,7 @@ public class SMGenerator {
     
     public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir) {
         String filename = songfile.getName();
-        String songname = filename.replace(".mp3", " ").replace(".wav", " ").replace(".com", " ").replace(".flac", " ");
+        String songname = filename.replace(".mp3", " ").replace(".wav", " ").replace(".com", " ");
         String shortName = songname.length() > 30 ? songname.substring(0, 30) : songname;
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();
@@ -114,7 +114,7 @@ public class SMGenerator {
         String imgFileName = "";
         if( imgFile.exists() == false ) {
             System.out.println("Attempting to get image for background & banner...");            
-            GoogleImageSearch.FindAndSaveImage(songname, imgFile.getAbsolutePath());
+            GoogleImageSearch.FindAndSaveImage(songname.replace("(", " ").replace(")", " ").replace("www.", " ").replace("_", " ").replace("-", " ").replace("&", " ").replace("[", " ").replace("]", " "), imgFile.getAbsolutePath());
         }
         if( imgFile.exists() ) {
             System.out.println("Got an image file!");

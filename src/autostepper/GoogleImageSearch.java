@@ -22,7 +22,7 @@ public class GoogleImageSearch {
 
         try {
             String googleUrl = "https://www.google.com/search?as_st=y&tbm=isch&as_q=" + question.replace(",", "+").replace(" ", "+") + "&as_epq=&as_oq=&as_eq=&cr=&as_sitesearch=&safe=images&tbs=isz:lt,islt:vga,iar:w";
-            Document doc1 = Jsoup.connect(googleUrl).userAgent(ua).timeout(6 * 1000).get();
+            Document doc1 = Jsoup.connect(googleUrl).userAgent(ua).timeout(8 * 1000).get();
             Element media = doc1.select("[data-src]").first();
             String finUrl = media.attr("abs:data-src"); 
             saveImage(finUrl.replace("&quot", ""), destination);
