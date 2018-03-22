@@ -1,6 +1,13 @@
+/*
+   - nero the thrill seems to have a ~0.2 second position lag when hitting enter
+   - does this happen in other song files?
+
+*/
+
 package autostepper;
 
 import ddf.minim.AudioPlayer;
+import ddf.minim.AudioSample;
 import ddf.minim.Minim;
 import ddf.minim.MultiChannelBuffer;
 import ddf.minim.analysis.BeatDetect;
@@ -69,7 +76,7 @@ public class AutoStepper {
         minim = new Minim(myAS);
         String outputDir, input;
         float duration;
-        System.out.println("Starting AutoStepper by Phr00t's Software, v1.1 (See www.phr00t.com for more goodies!)");
+        System.out.println("Starting AutoStepper by Phr00t's Software, v1.3 (See www.phr00t.com for more goodies!)");
         if( hasArg(args, "help") || hasArg(args, "h") || hasArg(args, "?") || hasArg(args, "-help") || hasArg(args, "-?") || hasArg(args, "-h") ) {
             System.out.println("Argument usage (all fields are optional):\n"
                     + "input=<file or dir> output=<songs dir> duration=<seconds to process> synctime=<offset start time in seconds> tap=<true/false> hard=<true/false>");
@@ -220,33 +227,37 @@ public class AutoStepper {
     
     public static float tappedOffset;
     public int getTappedBPM(String filename) {
-        AudioPlayer ap = minim.loadFile(filename, 2048);
+        // now we load the whole song so we don't have to worry about streaming a variable mp3 with timing inaccuracies
+        System.out.println("Loading whole song for tapping...");
+        AudioSample fullSong = minim.loadSample(filename);
         System.out.println("\n********************************************************************\n\nPress [ENTER] to start song, then press [ENTER] to tap to the beat.\nIt will complete after 30 entries.\nDon't worry about hitting the first beat, just start anytime.\n\n********************************************************************");
         TFloatArrayList positions = new TFloatArrayList();
         Scanner in = new Scanner(System.in);
         try {
             in.nextLine();
-        } catch(Exception e) { }
-        long milli = System.nanoTime();
-        ap.play();
-        milli = (System.nanoTime() + milli) / 2;
+        } catch(Exception e) { }        
+        // get the most accurate start time as possible
+        long nano = System.nanoTime();
+        fullSong.trigger();
+        nano = (System.nanoTime() + nano) / 2;
         try {
             for(int i=0;i<30;i++) {
-                while(System.in.available()==0) { }
+                in.nextLine();
+                // get two playtime values & average them together for accuracy
                 long now = System.nanoTime();
-                while(System.in.available()>0) { System.in.read(); }
-                double time = ((double)(now - milli) / 1000000000.0);            
-                positions.add((float)time);
+                // calculate the time difference
+                // we note a consistent 0.11 second delay in input to song here
+                double time = (double)((now - nano) / 1000000000.0) - 0.11;
+                positions.add((float)time);                
                 System.out.println("#" + positions.size() + "/30: " + time + "s");
             }
         } catch(Exception e) { }
-        ap.close();
-        //TFloatArrayList diffs = calculateDifferences(positions, 60f / (MAX_BPM * 2f));
-        //float mostCommon = getMostCommon(diffs, 0.025f);
+        fullSong.stop();
+        fullSong.close();
         float avg = ((positions.getQuick(positions.size()-1) - positions.getQuick(0)) / (positions.size() - 1));
         int BPM = (int)Math.floor(60f / avg);
         float timePerBeat = 60f / BPM;
-        tappedOffset = -getBestOffset(timePerBeat, positions, 0.1f) + timePerBeat * 0.5f;
+        tappedOffset = -getBestOffset(timePerBeat, positions, 0.1f);
         return BPM;
     }
     

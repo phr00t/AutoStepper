@@ -104,7 +104,7 @@ public class SMGenerator {
     
     public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir) {
         String filename = songfile.getName();
-        String songname = filename.replace(".mp3", " ").replace(".wav", " ").replace(".com", " ");
+        String songname = filename.replace(".mp3", " ").replace(".wav", " ").replace(".com", " ").replace(".org", " ").replace(".info", " ");
         String shortName = songname.length() > 30 ? songname.substring(0, 30) : songname;
         File dir = new File(outputdir, filename + "_dir/");
         dir.mkdirs();

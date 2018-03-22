@@ -6,6 +6,7 @@
 package autostepper;
 
 import gnu.trove.list.array.TFloatArrayList;
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -44,7 +45,7 @@ public class StepGenerator {
     // make a note line, with lots of checks, balances & filtering
     static float[] holding = new float[4];
     static float lastJumpTime;
-    static String lastLine = "0000";
+    static ArrayList<char[]> AllNoteLines = new ArrayList<>();
     static float lastKickTime = 0f;
     static int commaSeperator, commaSeperatorReset, mineCount;
     
@@ -81,15 +82,20 @@ public class StepGenerator {
         return holdstops;
     }
     
-    private static String getNoteLine(float time, int steps, int holds, boolean mines) {
+    private static String getNoteLineIndex(int i) {
+        if( i < 0 || i >= AllNoteLines.size() ) return "0000";
+        return String.valueOf(AllNoteLines.get(i));
+    }
+    
+    private static String getLastNoteLine() {
+        return getNoteLineIndex(AllNoteLines.size()-1);
+    }
+    
+    private static void makeNoteLine(String lastLine, float time, int steps, int holds, boolean mines) {
         if( steps == 0 ) {
-            lastLine = String.valueOf(getHoldStops(getHoldCount(), time, holds));
-            commaSeperator--;
-            if( commaSeperator <= 0 ) {
-                commaSeperator = commaSeperatorReset;
-                return lastLine + "\n,\n";
-            }            
-            return lastLine + "\n";
+            char[] ret = getHoldStops(getHoldCount(), time, holds);
+            AllNoteLines.add(ret);
+            return;
         }
         if( steps > 1 && time - lastJumpTime < (mines ? 2f : 4f) ) steps = 1; // don't spam jumps
         if( steps >= 2 ) {
@@ -103,6 +109,22 @@ public class StepGenerator {
         if( steps + currentHoldCount > 2 ) steps = 2 - currentHoldCount;
         // are we stopping holds?
         char[] noteLine = getHoldStops(currentHoldCount, time, holds);
+        // if we are making a step, but just coming off a hold, move that hold end up to give proper
+        // time to make move to new step
+        if( steps > 0 && lastLine.contains("3") ) {
+            int currentIndex = AllNoteLines.size()-1;
+            char[] currentLine = AllNoteLines.get(currentIndex);
+            for(int i=0;i<4;i++) {
+                if( currentLine[i] == '3' ) {
+                    // got a hold stop here, lets move it up
+                    currentLine[i] = '0';
+                    char[] nextLineUp = AllNoteLines.get(currentIndex-1);
+                    if( nextLineUp[i] == '2' ) {
+                        nextLineUp[i] = '1';
+                    } else nextLineUp[i] = '3';
+                }
+            }
+        }
         // ok, make the steps
         String completeLine;
         char[] orig = new char[4];
@@ -145,18 +167,12 @@ public class StepGenerator {
                 }
             }
             completeLine = String.valueOf(noteLine);
-        } while( completeLine.equals(lastLine) && completeLine.equals("0000") == false );
+        } while( completeLine.equals(String.valueOf(AllNoteLines.get(AllNoteLines.size()-1))) && completeLine.equals("0000") == false );
         if( willhold[0] > holding[0] ) holding[0] = willhold[0];
         if( willhold[1] > holding[1] ) holding[1] = willhold[1];
         if( willhold[2] > holding[2] ) holding[2] = willhold[2];
         if( willhold[3] > holding[3] ) holding[3] = willhold[3];
-        lastLine = completeLine;
-        commaSeperator--;
-        if( commaSeperator <= 0 ) {
-            completeLine += "\n,\n";
-            commaSeperator = commaSeperatorReset;
-        } else completeLine += "\n";
-        return completeLine;
+        AllNoteLines.add(noteLine);
     }
     
     private static boolean isNearATime(float time, TFloatArrayList timelist, float threshold) {
@@ -204,26 +220,25 @@ public class StepGenerator {
                                        float timePerBeat, float timeOffset, float totalTime,
                                        boolean allowMines) {      
         // reset variables
-        lastLine = "0000";
+        AllNoteLines.clear();
         lastJumpTime = -10f;
         holding[0] = 0f;
         holding[1] = 0f;
         holding[2] = 0f;
         holding[3] = 0f;
         lastKickTime = 0f;
-        String AllNotes = "";
         commaSeperatorReset = 4 * stepGranularity;
-        commaSeperator = commaSeperatorReset;
         float lastSkippedTime = -10f;
         int totalStepsMade = 0, timeIndex = 0;
         boolean skippedLast = false;
         float timeGranularity = timePerBeat / stepGranularity;
         for(float t = timeOffset; t <= totalTime; t += timeGranularity) {
             int steps = 0, holds = 0;
+            String lastLine = getLastNoteLine();
             if( t > 0f ) {
                 float fftavg = getFFT(t, FFTAverages, timePerFFT);
                 float fftmax = getFFT(t, FFTMaxes, timePerFFT);
-                boolean sustained = sustainedFFT(t, 0.75f, timeGranularity, timePerFFT, FFTMaxes, FFTAverages, 0.25f, 0.5f);
+                boolean sustained = sustainedFFT(t, 0.75f, timeGranularity, timePerFFT, FFTMaxes, FFTAverages, 0.25f, 0.45f);
                 boolean nearKick = isNearATime(t, fewTimes[AutoStepper.KICKS], timePerBeat / stepGranularity);
                 boolean nearSnare = isNearATime(t, fewTimes[AutoStepper.SNARE], timePerBeat / stepGranularity);
                 boolean nearEnergy = isNearATime(t, fewTimes[AutoStepper.ENERGY], timePerBeat / stepGranularity);
@@ -249,15 +264,27 @@ public class StepGenerator {
                 }                
             }
             if( AutoStepper.DEBUG_STEPS ) {
-                AllNotes += getNoteLine(t, timeIndex % 2 == 0 ? 1 : 0, -2, allowMines);
-            } else AllNotes += getNoteLine(t, steps, holds, allowMines);
+                makeNoteLine(lastLine, t, timeIndex % 2 == 0 ? 1 : 0, -2, allowMines);
+            } else makeNoteLine(lastLine, t, steps, holds, allowMines);
             totalStepsMade += steps;
             timeIndex++;
         }
+        // ok, put together AllNotes
+        String AllNotes = "";
+        commaSeperator = commaSeperatorReset;
+        for(int i=0;i<AllNoteLines.size();i++) {
+            AllNotes += getNoteLineIndex(i) + "\n";
+            commaSeperator--;
+            if( commaSeperator == 0 ) {
+                AllNotes += ",\n";
+                commaSeperator = commaSeperatorReset;
+            }
+        }
         // fill out the last empties
         while( commaSeperator > 0 ) {
-            AllNotes += "3333\n";
+            AllNotes += "3333";
             commaSeperator--;
+            if( commaSeperator > 0 ) AllNotes += "\n";
         }
         int _stepCount = AllNotes.length() - AllNotes.replace("1", "").length();
         int _holdCount = AllNotes.length() - AllNotes.replace("2", "").length();
