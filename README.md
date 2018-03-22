@@ -14,7 +14,11 @@ It works on a common line with arguments, which are all optional. If you just ru
 
 The arguments are:
 
-input=[file/dir] output=[songs dir] duration=[seconds to process] synctime=[offset start time in seconds] tap=[true/false] hard=[true/false]
+    input=[file/dir] output=[songs dir] duration=[seconds to process] synctime=[offset start time in seconds] tap=[true/false] hard=[true/false]
+    
+Example:
+
+    java -jar AutoStepper.jar input="./songs/" duration=130 hard=true
 
 If you set tap=true, AutoStepper won't try and automatically calculate the BPM or offset, and will instead prompt you to hit ENTER along with 30 consecutive beats. AutoStepper will then do the rest.
 
