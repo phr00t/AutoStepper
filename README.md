@@ -14,7 +14,7 @@ It works on a common line with arguments, which are all optional. If you just ru
 
 The arguments are:
 
-    input=[file/dir] output=[songs dir] duration=[seconds to process] synctime=[offset start time in seconds] tap=[true/false] hard=[true/false]
+    input=[file/dir] output=[songs dir] duration=[seconds to process] tap=[true/false] tapsync=[offset time in seconds for tap, default: -0.11] hard=[true/false]
     
 Example:
 
