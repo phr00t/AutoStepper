@@ -26,6 +26,7 @@ public class AutoStepper {
     
     public static boolean DEBUG_STEPS = false;
     public static float MAX_BPM = 170f, MIN_BPM = 70f, BPM_SENSITIVITY = 0.05f, STARTSYNC = 0.0f;
+    public static double TAPSYNC = -0.11;
     public static boolean USETAPPER = false, HARDMODE = false;
     
     public static Minim minim;
@@ -76,10 +77,10 @@ public class AutoStepper {
         minim = new Minim(myAS);
         String outputDir, input;
         float duration;
-        System.out.println("Starting AutoStepper by Phr00t's Software, v1.3 (See www.phr00t.com for more goodies!)");
+        System.out.println("Starting AutoStepper by Phr00t's Software, v1.4 (See www.phr00t.com for more goodies!)");
         if( hasArg(args, "help") || hasArg(args, "h") || hasArg(args, "?") || hasArg(args, "-help") || hasArg(args, "-?") || hasArg(args, "-h") ) {
             System.out.println("Argument usage (all fields are optional):\n"
-                    + "input=<file or dir> output=<songs dir> duration=<seconds to process> synctime=<offset start time in seconds> tap=<true/false> hard=<true/false>");
+                    + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: 90> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false>");
             return;
         }
         MAX_BPM = Float.parseFloat(getArg(args, "maxbpm", "170f"));
@@ -90,6 +91,7 @@ public class AutoStepper {
         STARTSYNC = Float.parseFloat(getArg(args, "synctime", "0.0"));
         BPM_SENSITIVITY = Float.parseFloat(getArg(args, "bpmsensitivity", "0.05"));
         USETAPPER = getArg(args, "tap", "false").equals("true");
+        TAPSYNC = Double.parseDouble(getArg(args, "tapsync", "-0.11"));
         HARDMODE = getArg(args, "hard", "false").equals("true");
         File inputFile = new File(input);
         if( inputFile.isFile() ) {
@@ -247,7 +249,7 @@ public class AutoStepper {
                 long now = System.nanoTime();
                 // calculate the time difference
                 // we note a consistent 0.11 second delay in input to song here
-                double time = (double)((now - nano) / 1000000000.0) - 0.11;
+                double time = (double)((now - nano) / 1000000000.0) + TAPSYNC;
                 positions.add((float)time);                
                 System.out.println("#" + positions.size() + "/30: " + time + "s");
             }

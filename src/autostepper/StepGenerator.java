@@ -167,7 +167,7 @@ public class StepGenerator {
                 }
             }
             completeLine = String.valueOf(noteLine);
-        } while( completeLine.equals(String.valueOf(AllNoteLines.get(AllNoteLines.size()-1))) && completeLine.equals("0000") == false );
+        } while( completeLine.equals(lastLine) && completeLine.equals("0000") == false );
         if( willhold[0] > holding[0] ) holding[0] = willhold[0];
         if( willhold[1] > holding[1] ) holding[1] = willhold[1];
         if( willhold[2] > holding[2] ) holding[2] = willhold[2];
