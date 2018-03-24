@@ -1,12 +1,5 @@
-/*
-   - nero the thrill seems to have a ~0.2 second position lag when hitting enter
-   - does this happen in other song files?
-
-*/
-
 package autostepper;
 
-import ddf.minim.AudioPlayer;
 import ddf.minim.AudioSample;
 import ddf.minim.Minim;
 import ddf.minim.MultiChannelBuffer;
@@ -77,7 +70,7 @@ public class AutoStepper {
         minim = new Minim(myAS);
         String outputDir, input;
         float duration;
-        System.out.println("Starting AutoStepper by Phr00t's Software, v1.4 (See www.phr00t.com for more goodies!)");
+        System.out.println("Starting AutoStepper by Phr00t's Software, v1.5 (See www.phr00t.com for more goodies!)");
         if( hasArg(args, "help") || hasArg(args, "h") || hasArg(args, "?") || hasArg(args, "-help") || hasArg(args, "-?") || hasArg(args, "-h") ) {
             System.out.println("Argument usage (all fields are optional):\n"
                     + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: 90> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false>");

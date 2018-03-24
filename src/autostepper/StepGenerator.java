@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package autostepper;
 
 import gnu.trove.list.array.TFloatArrayList;
@@ -47,7 +42,7 @@ public class StepGenerator {
     static float lastJumpTime;
     static ArrayList<char[]> AllNoteLines = new ArrayList<>();
     static float lastKickTime = 0f;
-    static int commaSeperator, commaSeperatorReset, mineCount;
+    static int commaSeperator, commaSeperatorReset, mineCount, holdRun;
     
     private static char[] getHoldStops(int currentHoldCount, float time, int holds) {
         char[] holdstops = new char[4];
@@ -107,6 +102,8 @@ public class StepGenerator {
         int currentHoldCount = getHoldCount(); 
         if( holds + currentHoldCount > 2 ) holds = 2 - currentHoldCount;
         if( steps + currentHoldCount > 2 ) steps = 2 - currentHoldCount;
+        // if we have had a run of 3 holds, don't make a new hold to prevent player from spinning
+        if( holdRun >= 2 && holds > 0 ) holds = 0;
         // are we stopping holds?
         char[] noteLine = getHoldStops(currentHoldCount, time, holds);
         // if we are making a step, but just coming off a hold, move that hold end up to give proper
@@ -172,6 +169,9 @@ public class StepGenerator {
         if( willhold[1] > holding[1] ) holding[1] = willhold[1];
         if( willhold[2] > holding[2] ) holding[2] = willhold[2];
         if( willhold[3] > holding[3] ) holding[3] = willhold[3];
+        if( getHoldCount() == 0 ) {
+            holdRun = 0;
+        } else holdRun++;
         AllNoteLines.add(noteLine);
     }
     
@@ -222,6 +222,7 @@ public class StepGenerator {
         // reset variables
         AllNoteLines.clear();
         lastJumpTime = -10f;
+        holdRun = 0;
         holding[0] = 0f;
         holding[1] = 0f;
         holding[2] = 0f;
