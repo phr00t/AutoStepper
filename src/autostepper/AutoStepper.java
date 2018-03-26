@@ -20,7 +20,7 @@ public class AutoStepper {
     public static boolean DEBUG_STEPS = false;
     public static float MAX_BPM = 170f, MIN_BPM = 70f, BPM_SENSITIVITY = 0.05f, STARTSYNC = 0.0f;
     public static double TAPSYNC = -0.11;
-    public static boolean USETAPPER = false, HARDMODE = false;
+    public static boolean USETAPPER = false, HARDMODE = false, UPDATESM = false;
     
     public static Minim minim;
     public static AutoStepper myAS = new AutoStepper();
@@ -70,10 +70,10 @@ public class AutoStepper {
         minim = new Minim(myAS);
         String outputDir, input;
         float duration;
-        System.out.println("Starting AutoStepper by Phr00t's Software, v1.5 (See www.phr00t.com for more goodies!)");
+        System.out.println("Starting AutoStepper by Phr00t's Software, v1.6 (See www.phr00t.com for more goodies!)");
         if( hasArg(args, "help") || hasArg(args, "h") || hasArg(args, "?") || hasArg(args, "-help") || hasArg(args, "-?") || hasArg(args, "-h") ) {
             System.out.println("Argument usage (all fields are optional):\n"
-                    + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: 90> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false>");
+                    + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: 90> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false> updatesm=<true/false>");
             return;
         }
         MAX_BPM = Float.parseFloat(getArg(args, "maxbpm", "170f"));
@@ -86,6 +86,7 @@ public class AutoStepper {
         USETAPPER = getArg(args, "tap", "false").equals("true");
         TAPSYNC = Double.parseDouble(getArg(args, "tapsync", "-0.11"));
         HARDMODE = getArg(args, "hard", "false").equals("true");
+        UPDATESM = getArg(args, "updatesm", "false").equals("true");
         File inputFile = new File(input);
         if( inputFile.isFile() ) {
             myAS.analyzeUsingAudioRecordingStream(inputFile, duration, outputDir);            
@@ -348,12 +349,39 @@ public class AutoStepper {
           AddCommonBPMs(common, fewTimes[i], doubleSpeed, timePerSample * 1.5f);
           AddCommonBPMs(common, manyTimes[i], doubleSpeed, timePerSample * 1.5f);
       }
-      float BPM, startTime, timePerBeat;
+      float BPM = 0f, startTime = 0f, timePerBeat = 0f;
       if( USETAPPER ) {
           BPM = getTappedBPM(filename.getAbsolutePath());
           timePerBeat = 60f / BPM;
           startTime = tappedOffset;
-      } else {
+      } else if( UPDATESM ) {
+          File smfile = SMGenerator.getSMFile(filename, outputDir);
+          if( smfile.exists() ) {
+              try {
+                BufferedReader br = new BufferedReader(new FileReader(smfile));
+                while(br.ready() && (BPM == 0f || startTime == 0f)) {
+                    String line = br.readLine();
+                    if( line.contains("#OFFSET:") ) {
+                        int off = line.indexOf("#OFFSET:") + 8;
+                        int end = line.indexOf(";", off);
+                        startTime = Float.parseFloat(line.substring(off, end));
+                        System.out.println("StartTime from SM file: " + startTime);
+                    }
+                    if( line.contains("#BPMS:") ) {
+                        int off = line.indexOf("#BPMS:");
+                        off = line.indexOf("=", off) + 1;
+                        int end = line.indexOf(";", off);
+                        BPM = Float.parseFloat(line.substring(off, end));
+                        System.out.println("BPM from SM file: " + BPM);
+                    }
+                }
+                timePerBeat = 60f / BPM;
+              } catch(Exception e) { }
+          } else {
+              System.out.println("Couldn't find SM to update: " + smfile.getAbsolutePath());
+          }
+      }
+      if( BPM == 0f ) {
         if( common.isEmpty() ) {
             System.out.println("[--- FAILED: COULDN'T CALCULATE BPM ---]");
             return;
@@ -372,7 +400,7 @@ public class AutoStepper {
         startTime = -getMostCommon(startTimes, 0.02f, false);            
       }
       System.out.println("Time per beat: " + timePerBeat + ", BPM: " + BPM);
-      System.out.println("Start Time (without " + STARTSYNC + "s offset yet): " + startTime);
+      System.out.println("Start Time: " + startTime);
       
       // start making the SM
       BufferedWriter smfile = SMGenerator.GenerateSM(BPM, startTime, filename, outputDir);

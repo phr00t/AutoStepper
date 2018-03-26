@@ -101,6 +101,12 @@ public class SMGenerator {
             smfile.close();
         } catch(Exception e) { }
     }
+
+    public static File getSMFile(File songFile, String outputdir) {
+        String filename = songFile.getName();
+        File dir = new File(outputdir, filename + "_dir/");
+        return new File(dir, filename + ".sm");
+    }
     
     public static BufferedWriter GenerateSM(float BPM, float startTime, File songfile, String outputdir) {
         String filename = songfile.getName();
