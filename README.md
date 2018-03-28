@@ -1,4 +1,4 @@
-##General
+## General
 AutoStepper is a Java console program designed to automatically create StepMania SM files with these features:
 
     Generate all difficulty levels
@@ -18,7 +18,7 @@ Then jar with dependencies packed will be waiting and you can use that jar right
     mvn dependency:copy-dependencies -DexcludeClassifiers=test
     
     
-##Running
+## Running
 
 It works on a common line with arguments, which are all optional. If you just run the Java program, it will scan & process all mp3s (and wavs) in the current directory, and spit out folders for each song in the same directory (90 seconds worth of steps).
 
