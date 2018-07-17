@@ -70,7 +70,7 @@ public class AutoStepper {
         minim = new Minim(myAS);
         String outputDir, input;
         float duration;
-        System.out.println("Starting AutoStepper by Phr00t's Software, v1.6 (See www.phr00t.com for more goodies!)");
+        System.out.println("Starting AutoStepper by Phr00t's Software, v1.7 (See www.phr00t.com for more goodies!)");
         if( hasArg(args, "help") || hasArg(args, "h") || hasArg(args, "?") || hasArg(args, "-help") || hasArg(args, "-?") || hasArg(args, "-h") ) {
             System.out.println("Argument usage (all fields are optional):\n"
                     + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: 90> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false> updatesm=<true/false>");
@@ -96,7 +96,7 @@ public class AutoStepper {
             for(File f : allfiles) {
                 String extCheck = f.getName().toLowerCase();
                 if( f.isFile() &&
-                    (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav") || extCheck.endsWith(".flac")) ) {
+                    (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav")) ) {
                     myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir);                    
                 } else {
                     System.out.println("Skipping unsupported file: " + f.getName());
