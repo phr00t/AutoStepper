@@ -51,7 +51,7 @@ public class AutoStepper {
             for(String s : args) {
                 s = s.replace("\"", "");
                 if( s.startsWith(argname) ) {
-                    return s.substring(s.indexOf("=") + 1).toLowerCase();
+                    return s.substring(s.indexOf("=") + 1);
                 }
             }
         } catch(Exception e) { }
@@ -61,7 +61,7 @@ public class AutoStepper {
     // argument parser
     public static boolean hasArg(String[] args, String argname) {
         for(String s : args) {
-            if( s.toLowerCase().equals(argname) ) return true;
+            if( s.equals(argname) ) return true;
         }
         return false;
     }
@@ -94,7 +94,7 @@ public class AutoStepper {
             System.out.println("Processing directory: " + inputFile.getAbsolutePath());
             File[] allfiles = inputFile.listFiles();
             for(File f : allfiles) {
-                String extCheck = f.getName().toLowerCase();
+                String extCheck = f.getName();
                 if( f.isFile() &&
                     (extCheck.endsWith(".mp3") || extCheck.endsWith(".wav")) ) {
                     myAS.analyzeUsingAudioRecordingStream(f, duration, outputDir);                    
