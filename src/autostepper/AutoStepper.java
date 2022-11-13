@@ -6,6 +6,7 @@ import ddf.minim.MultiChannelBuffer;
 import ddf.minim.analysis.BeatDetect;
 import ddf.minim.analysis.FFT;
 import ddf.minim.spi.AudioRecordingStream;
+import ddf.minim.AudioMetaData;
 import gnu.trove.list.array.TFloatArrayList;
 import java.io.*;
 import java.util.ArrayList;
@@ -80,7 +81,7 @@ public class AutoStepper {
         outputDir = getArg(args, "output", ".");
         if( outputDir.endsWith("/") == false ) outputDir += "/";
         input = getArg(args, "input", ".");
-        duration = Float.parseFloat(getArg(args, "duration", "90"));
+        duration = Float.parseFloat(getArg(args, "duration", "-1"));
         STARTSYNC = Float.parseFloat(getArg(args, "synctime", "0.0"));
         BPM_SENSITIVITY = Float.parseFloat(getArg(args, "bpmsensitivity", "0.05"));
         USETAPPER = getArg(args, "tap", "false").equals("true");
@@ -260,8 +261,14 @@ public class AutoStepper {
     void analyzeUsingAudioRecordingStream(File filename, float seconds, String outputDir) {
       int fftSize = 512;
       
-      System.out.println("\n[--- Processing " + seconds + "s of "+ filename.getName() + " ---]");
       AudioRecordingStream stream = minim.loadFileStream(filename.getAbsolutePath(), fftSize, false);
+
+      if (seconds <= 0) {
+          AudioMetaData data = stream.getMetaData();
+          seconds = data.length() / 1000;
+      }
+
+      System.out.println("\n[--- Processing " + seconds + "s of "+ filename.getName() + " ---]");
 
       // tell it to "play" so we can read from it.
       stream.play();
