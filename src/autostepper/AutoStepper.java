@@ -74,7 +74,7 @@ public class AutoStepper {
         System.out.println("Starting AutoStepper by Phr00t's Software, v1.7 (See www.phr00t.com for more goodies!)");
         if( hasArg(args, "help") || hasArg(args, "h") || hasArg(args, "?") || hasArg(args, "-help") || hasArg(args, "-?") || hasArg(args, "-h") ) {
             System.out.println("Argument usage (all fields are optional):\n"
-                    + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: 90> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false> updatesm=<true/false>");
+                    + "input=<file or dir> output=<songs dir> duration=<seconds to process, default: song length> tap=<true/false> tapsync=<tap time offset, default: -0.11> hard=<true/false> updatesm=<true/false>");
             return;
         }
         MAX_BPM = Float.parseFloat(getArg(args, "maxbpm", "170f"));
